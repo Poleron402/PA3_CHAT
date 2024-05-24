@@ -12,7 +12,7 @@ __credits__ = [
 
 import socket as s
 import time
-
+import threading
 # Configure logging
 import logging
 logging.basicConfig()
@@ -21,26 +21,32 @@ log.setLevel(logging.DEBUG)
 
 server_port = 12000
 
+lock = threading.Lock()
 def connection_handler(connection_socket, address):
   # Read data from the new connectio socket
   #  Note: if no data has been sent this blocks until there is data
-  query = connection_socket.recv(1024)
-  
-  # Decode data from UTF-8 bytestream
-  query_decoded = query.decode()
-  
-  # Log query information
-  log.info("Received query test \"" + str(query_decoded) + "\"")
-  
-  # Perform some server operations on data to generate response
-  time.sleep(10)
-  response = query_decoded.upper()
-  
-  # Sent response over the network, encoding to UTF-8
-  connection_socket.send(response.encode())
-  
-  # Close client socket
-  connection_socket.close()
+  # while True:
+    query = connection_socket.recv(1024)
+    # if not query:
+    #   break  # If the client closes the connection
+    # Decode data from UTF-8 bytestream
+    query_decoded = query.decode()
+    
+    # Log query information
+    log.info("Received query test \"" + str(query_decoded) + "\"")
+    log.info("Host info >> "+str(address[0]))
+    # Perform some server operations on data to generate response
+    time.sleep(1)
+    if(address[0] == '10.0.0.2'):
+      response = 'Client X: '+query_decoded
+    else:
+      response = 'Client Y: '+query_decoded
+    # Sent response over the network, encoding to UTF-8
+    lock.acquire()
+    connection_socket.send(response.encode())
+    lock.release()
+    # Close client socket
+    connection_socket.close()
   
 
 def main():
@@ -65,7 +71,8 @@ def main():
       connection_socket, address = server_socket.accept()
       log.info("Connected to client at " + str(address))
       # Pass the new socket and address off to a connection handler function
-      connection_handler(connection_socket, address)
+      x1 = threading.Thread(target=connection_handler, args = (connection_socket, address))
+      x1.start()
   finally:
     server_socket.close()
 
