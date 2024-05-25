@@ -1,5 +1,4 @@
 #!env python
-
 """Chat client for CST311 Programming Assignment 3"""
 __author__ = "[OtterAI]"
 __credits__ = [
@@ -20,12 +19,18 @@ log.setLevel(logging.DEBUG)
 # Set global variables
 server_name = '10.0.0.1'
 server_port = 12000
-
-lock = threading.Lock()
+def send_msg(client_socket):
+  print('Welcome to the chat')
+  while user_input.lower() != 'bye':
+    user_input = input("Enter a message: ")
+      # Set data across socket to server
+      #  Note: encode() converts the string to UTF-8 for transmission
+    client_socket.send(user_input.encode())
+    # Read response from server
+    
 def main():
   # Create socket
   client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-  
   try:
     # Establish TCP connection
     client_socket.connect((server_name,server_port))
@@ -64,7 +69,7 @@ def main():
     finally:
     #   # Close socket prior to exit
       client_socket.close()
-  # client_socket.close()
+  client_socket.close()
 # This helps shield code from running when we import the module
 if __name__ == "__main__":
   main()

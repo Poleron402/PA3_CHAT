@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 server_port = 12000
-
+client_ports = []
 lock = threading.Lock()
 def connection_handler(connection_socket, address):
   # Read data from the new connectio socket
@@ -30,8 +30,8 @@ def connection_handler(connection_socket, address):
     # if not query:
     #   break  # If the client closes the connection
     # Decode data from UTF-8 bytestream
+    # lock.acquire()
     query_decoded = query.decode()
-    
     # Log query information
     log.info("Received query test \"" + str(query_decoded) + "\"")
     log.info("Host info >> "+str(address[0]))
@@ -42,9 +42,12 @@ def connection_handler(connection_socket, address):
     else:
       response = 'Client Y: '+query_decoded
     # Sent response over the network, encoding to UTF-8
-    lock.acquire()
-    connection_socket.send(response.encode())
-    lock.release()
+    for i in client_ports:
+      log.info(str(i))
+      if i != connection_socket:
+        log.info(str(i))
+        i.send(response.encode())
+    # lock.release()
     # Close client socket
     connection_socket.close()
   
@@ -69,6 +72,7 @@ def main():
     while True:
       # When a client connects, create a new socket and record their address
       connection_socket, address = server_socket.accept()
+      client_ports.append(connection_socket)
       log.info("Connected to client at " + str(address))
       # Pass the new socket and address off to a connection handler function
       x1 = threading.Thread(target=connection_handler, args = (connection_socket, address))
