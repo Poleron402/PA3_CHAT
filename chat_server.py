@@ -23,27 +23,33 @@ server_port = 12000
 client_ports = []
 lock = threading.Lock()
 def connection_handler(connection_socket, address):
-    try:
+    # try:
       while True:
         query = connection_socket.recv(1024)
         query_decoded = query.decode()
         if not query:
-          break 
-        # Log query information
-        log.info("Received query test \"" + str(query_decoded) + "\"")
-        log.info("Host info >> "+str(address[0]))
-        # Perform some server operations on data to generate response
-        time.sleep(1)
-        if(client_ports[0] == connection_socket):
-          response = 'Client X: '+query_decoded
+          break
+        if query_decoded.lower() == 'bye':
+          response = 'Client says bye'
+          client_ports.remove(connection_socket)
+          if len(client_ports)!=0:
+            for i in client_ports:
+              if i != connection_socket:
+                i.send(response.encode())
+          break
         else:
-          response = 'Client Y: '+query_decoded
-        # Sent response over the network, encoding to UTF-8
+          if(client_ports[0] == connection_socket):
+            response = 'Client X: '+query_decoded
+          else:
+            response = 'Client Y: '+query_decoded
+          # Sent response over the network, encoding to UTF-8
+
+          for i in client_ports:
+            if i != connection_socket:
+              i.send(response.encode())
+
         
-        for i in client_ports:
-          if i != connection_socket:
-            i.send(response.encode())
-    finally:
+    # finally:
       connection_socket.close()
   
 

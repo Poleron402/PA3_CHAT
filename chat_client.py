@@ -24,14 +24,19 @@ server_port = 12000
 def send_msg(client_socket):
   print('Welcome to the chat')
   while True:
-    user_input = input("Enter a message: ")
+    user_input = input()
       # Set data across socket to server
       #  Note: encode() converts the string to UTF-8 for transmission
-    client_socket.send(user_input.encode())
-    # Read response from server
     if user_input.lower()=='bye':
-        break
-  client_socket.close()
+      user_input+"\n***The client has left the chat***"
+      client_socket.send(user_input.encode())
+      break
+    # Read response from server
+    client_socket.send(user_input.encode())
+    # if user_input.lower()=='bye':
+    #     # user_input+"\n***The client has left the chat***"
+    #   break
+  # client_socket.close()
   
   
 
@@ -45,8 +50,7 @@ def receive_msg(client_socket):
       server_response_decoded = server_response.decode()
       # Print output from server
       print(server_response_decoded)
-  # finally:
-  #   client_socket.close()
+
 
     
 def main():
