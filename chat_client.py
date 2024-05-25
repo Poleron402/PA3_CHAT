@@ -19,8 +19,9 @@ log.setLevel(logging.DEBUG)
 # Set global variables
 server_name = '10.0.0.1'
 server_port = 12000
+
+
 def send_msg(client_socket):
-  user_input = ''
   print('Welcome to the chat')
   while True:
     user_input = input("Enter a message: ")
@@ -29,30 +30,39 @@ def send_msg(client_socket):
     client_socket.send(user_input.encode())
     # Read response from server
     if user_input.lower()=='bye':
-      break
+        break
   client_socket.close()
+  
+  
 
 def receive_msg(client_socket):
-  try:
-    server_response = client_socket.recv(1024)
+  # try:
+    while True:
+      server_response = client_socket.recv(1024)
+      if not server_response:
+        break
       # Decode server response from UTF-8 bytestream
-    server_response_decoded = server_response.decode()
-    # lock.acquire()
-    # Print output from server
-    print(server_response_decoded)
-  finally:
-    client_socket.close()
+      server_response_decoded = server_response.decode()
+      # Print output from server
+      print(server_response_decoded)
+  # finally:
+  #   client_socket.close()
 
     
 def main():
   # Create socket
   client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
   client_socket.connect((server_name,server_port))
-
-  x = threading.Thread(target=send_msg, args=(client_socket,))
-  y = threading.Thread(target=receive_msg, args=(client_socket,))
-  x.start()
-  y.start()
+  try:
+    x = threading.Thread(target=send_msg, args=(client_socket,))
+    y = threading.Thread(target=receive_msg, args=(client_socket,))
+    x.start()
+    y.start()
+    x.join()
+    y.join()
+  finally:
+    if client_socket:
+      client_socket.close()
 
 # This helps shield code from running when we import the module
 if __name__ == "__main__":

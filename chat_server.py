@@ -23,23 +23,28 @@ server_port = 12000
 client_ports = []
 lock = threading.Lock()
 def connection_handler(connection_socket, address):
-    query = connection_socket.recv(1024)
-    query_decoded = query.decode()
-    # Log query information
-    log.info("Received query test \"" + str(query_decoded) + "\"")
-    log.info("Host info >> "+str(address[0]))
-    # Perform some server operations on data to generate response
-    time.sleep(1)
-    if(address[0] == '10.0.0.2'):
-      response = 'Client X: '+query_decoded
-    else:
-      response = 'Client Y: '+query_decoded
-    # Sent response over the network, encoding to UTF-8
-    for i in client_ports:
-      if i != connection_socket:
-        log.info(str(i))
-        i.send(response.encode())
-    connection_socket.close()
+    try:
+      while True:
+        query = connection_socket.recv(1024)
+        query_decoded = query.decode()
+        if not query:
+          break 
+        # Log query information
+        log.info("Received query test \"" + str(query_decoded) + "\"")
+        log.info("Host info >> "+str(address[0]))
+        # Perform some server operations on data to generate response
+        time.sleep(1)
+        if(client_ports[0] == connection_socket):
+          response = 'Client X: '+query_decoded
+        else:
+          response = 'Client Y: '+query_decoded
+        # Sent response over the network, encoding to UTF-8
+        
+        for i in client_ports:
+          if i != connection_socket:
+            i.send(response.encode())
+    finally:
+      connection_socket.close()
   
 
 def main():
@@ -51,7 +56,7 @@ def main():
   server_socket.bind(('',server_port))
   
   # Configure how many requests can be queued on the server at once
-  server_socket.listen(1)
+  server_socket.listen(2)
   
   # Alert user we are now online
   log.info("The server is ready to receive on port " + str(server_port))
@@ -67,6 +72,7 @@ def main():
       # Pass the new socket and address off to a connection handler function
       x1 = threading.Thread(target=connection_handler, args = (connection_socket, address))
       x1.start()
+      # x1.join()
   finally:
     server_socket.close()
 
