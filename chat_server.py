@@ -29,26 +29,24 @@ def connection_handler(connection_socket, address):
         query_decoded = query.decode()
         if not query:
           break
-        if query_decoded.lower() == 'bye':
-          response = 'Client says bye'
-          client_ports.remove(connection_socket)
-          if len(client_ports)!=0:
-            for i in client_ports:
-              if i != connection_socket:
-                i.send(response.encode())
-          break
-        else:
-          if(client_ports[0] == connection_socket):
-            response = 'Client X: '+query_decoded
-          else:
-            response = 'Client Y: '+query_decoded
-          # Sent response over the network, encoding to UTF-8
 
+        if(client_ports[0] == connection_socket):
+          response = 'Client X: '+query_decoded
+        else:
+          response = 'Client Y: '+query_decoded
+        # Sent response over the network, encoding to UTF-8
+        if query_decoded.lower() == 'bye':
+          response += '\n***Client has disconnected***'
+          client_ports.remove(connection_socket)
+          if len(client_ports) == 0:
+            break
           for i in client_ports:
             if i != connection_socket:
               i.send(response.encode())
-
-        
+          break
+        for i in client_ports:
+          if i != connection_socket:
+            i.send(response.encode())
     # finally:
       connection_socket.close()
   
@@ -78,7 +76,6 @@ def main():
       # Pass the new socket and address off to a connection handler function
       x1 = threading.Thread(target=connection_handler, args = (connection_socket, address))
       x1.start()
-      # x1.join()
   finally:
     server_socket.close()
 
