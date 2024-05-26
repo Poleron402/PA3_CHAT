@@ -52,9 +52,9 @@ def receive_msg(client_socket):
 def main():
   # Create socket
   client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-  # un = input("Enter username: ")
-  # client_socket.connect((server_name,server_port))
-  # client_socket.send(un.encode())
+  un = input("Enter username: ")
+  client_socket.connect((server_name,server_port))
+  client_socket.send(un.encode())
   try:
     x = threading.Thread(target=send_msg, args=(client_socket,))
     y = threading.Thread(target=receive_msg, args=(client_socket,))

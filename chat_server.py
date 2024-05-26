@@ -20,30 +20,25 @@ log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 server_port = 12000
-client_ports = []
-lock = threading.Lock()
-num_clients = 0
+
+client_ports = {}
 def connection_handler(connection_socket, address):
       while True:
         query = connection_socket.recv(1024)
         query_decoded = query.decode()
         if not query:
           break
-
-        if(client_ports[0] == connection_socket):
-          response = 'Client X: '+query_decoded
-        else:
-          response = 'Client Y: '+query_decoded
+        response = f"{str(client_ports.get(connection_socket))}: {query_decoded}"
         # Sent response over the network, encoding to UTF-8
         if query_decoded.lower() == 'bye':
           response += '\n***Client has disconnected***'
-          client_ports.remove(connection_socket)
+          del client_ports[connection_socket]
           if len(client_ports) != 0:
-            for i in client_ports:
+            for i in client_ports.keys():
               if i != connection_socket:
                 i.send(response.encode())
           break
-        for i in client_ports:
+        for i in client_ports.keys():
           if i != connection_socket:
             i.send(response.encode())
       connection_socket.close()
@@ -69,9 +64,10 @@ def main():
     while True:
       # When a client connects, create a new socket and record their address
       connection_socket, address = server_socket.accept()
-      client_ports.append(connection_socket)
-      
-      log.info("Connected to client at " + str(address))
+      # client_ports.append(connection_socket)
+      un = connection_socket.recv(1024)
+      client_ports[connection_socket] = un.decode()
+      log.info(f"Connected to {un.decode()} at {address}")
       # Pass the new socket and address off to a connection handler function
       x1 = threading.Thread(target=connection_handler, args = (connection_socket, address))
       x1.start()
