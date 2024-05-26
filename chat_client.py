@@ -35,11 +35,11 @@ def receive_messages(client_socket):
         server_response_decoded = server_response.decode()
         print(server_response_decoded)  # print server response
         # if server response is that the server has left the chat, break the loop
-        if server_response_decoded.endswith('has left the chat.'):
-            print('\n' + "Server has closed the connection.")
-            break
-    client_socket.close()  # close the socket
-    sys.exit(0)
+    #     if server_response_decoded.endswith('has left the chat.'):
+    #         print('\n' + "Server has closed the connection.")
+    #         break
+    # client_socket.close()  # close the socket
+    # sys.exit(0)
 
 
 def main():
@@ -48,7 +48,9 @@ def main():
 
     try:
         # Establish TCP connection
+        un = input("Enter username: ")
         client_socket.connect((server_name, server_port))
+        client_socket.send(un.encode())
     except Exception as e:
         log.exception(e)
         log.error("***Advice:***")
@@ -58,7 +60,7 @@ def main():
             log.error("\tCheck that server is running and the address is correct")
         else:
             log.error("\tNo specific advice, please contact teaching staff and include text of error and code.")
-        exit(8)
+        # exit(8)
 
     # Start the thread for receiving messages
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()

@@ -21,35 +21,36 @@ log.setLevel(logging.DEBUG)
 
 server_port = 12000
 clients = {}  # dictionary to store client sockets
-client_names = {}  # dictionary to store client names
+# client_names = {}  # dictionary to store client names
 
 
-def handle_client(connection_socket, addr, client_id):
-    client_name = client_names[connection_socket]  # get client name
+def handle_client(connection_socket, addr):
     while True:  # loop to handle client messages
-        try:
+        # try:
             message = connection_socket.recv(1024).decode()  # receive message from client
+            
             if message == "bye":  # if client sends 'bye', close connection
                 # Inform other client and close connection
-                exit_message = f"{client_name} has left the chat."
-                for client in clients.values():  # loop through clients
+                exit_message = f"{clients[connection_socket]} has left the chat."
+                for client in clients.keys():  # loop through clients
                     if client != connection_socket:  # if client is not the one leaving
                         client.send(exit_message.encode())  # send exit message
                 connection_socket.close()  # close connection
                 # remove client from clients dictionary - prevents server from sending to a client that has left
-                clients.pop(client_id)
+                clients.pop(connection_socket)
                 break
             else:
                 # Forward the message to the other client with the client's name
-                message_to_send = f"{client_name}: {message}"
-                for client in clients.values():  # loop through clients
+                message_to_send = f"{clients[connection_socket]}: {message}"
+                for client in clients.keys():  # loop through clients
                     if client != connection_socket:  # if client is not the one sending the message
                         client.send(message_to_send.encode())  # send message
-        except Exception as e:
-            log.error(f"Error handling client {client_name}: {e}")
-            connection_socket.close()
-            clients.pop(client_id)
-            break
+        # except Exception as e:
+        #     log.error(f"Error handling client {clients[connection_socket]}: {e}")
+        #     connection_socket.close()
+        #     clients.pop(connection_socket)
+        #     break
+    connection_socket.close()
 
 
 def main():
@@ -58,18 +59,17 @@ def main():
     server_socket.listen(2)  # Allow two clients
     print("Server is ready to receive on port", server_port)
 
-    client_counter = 0
+    # client_counter = 0
 
     while True:
-        if len(clients) < 2:
-            conn, addr = server_socket.accept()
-            client_counter += 1  # increment client counter
-            client_id = f"Client {'Y' if client_counter == 1 else 'X'}"  # set client id
-            clients[client_id] = conn  # add client to clients dictionary
-            client_names[conn] = client_id  # add client name to client_names dictionary
-            log.info(f"{client_id} connected from {addr}")  # log client connection
+        # if len(clients) < 2:
+            connection_socket, address = server_socket.accept()
+            un = connection_socket.recv(1024)
+            clients[connection_socket] = un.decode()
+            log.info(f"Connected to {un.decode()} at {address}") # set client id
+            # log.info(f"{client_id} connected from {addr}")  # log client connection
             #  start thread to handle client
-            threading.Thread(target=handle_client, args=(conn, addr, client_id)).start()
+            threading.Thread(target=handle_client, args=(connection_socket, address)).start()
 
 
 if __name__ == "__main__":
