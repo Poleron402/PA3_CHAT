@@ -3,71 +3,74 @@
 """Chat server for CST311 Programming Assignment 3"""
 __author__ = "OtterAI"
 __credits__ = [
-  "Anthony Suvorov",
-  "Aryeh Freud",
-  "Eric Rodriguez",
-  "Polina Mejia"
+    "Anthony Suvorov",
+    "Aryeh Freud",
+    "Eric Rodriguez",
+    "Polina Mejia"
 ]
 
-
-import socket as s
-import time
+import socket
+import threading
 
 # Configure logging
 import logging
+
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 server_port = 12000
+clients = {}  # dictionary to store client sockets
+client_names = {}  # dictionary to store client names
 
-def connection_handler(connection_socket, address):
-  # Read data from the new connectio socket
-  #  Note: if no data has been sent this blocks until there is data
-  query = connection_socket.recv(1024)
-  
-  # Decode data from UTF-8 bytestream
-  query_decoded = query.decode()
-  
-  # Log query information
-  log.info("Received query test \"" + str(query_decoded) + "\"")
-  
-  # Perform some server operations on data to generate response
-  time.sleep(10)
-  response = query_decoded.upper()
-  
-  # Sent response over the network, encoding to UTF-8
-  connection_socket.send(response.encode())
-  
-  # Close client socket
-  connection_socket.close()
-  
+
+def handle_client(connection_socket, addr, client_id):
+    client_name = client_names[connection_socket]  # get client name
+    while True:  # loop to handle client messages
+        try:
+            message = connection_socket.recv(1024).decode()  # receive message from client
+            if message == "bye":  # if client sends 'bye', close connection
+                # Inform other client and close connection
+                exit_message = f"{client_name} has left the chat."
+                for client in clients.values():  # loop through clients
+                    if client != connection_socket:  # if client is not the one leaving
+                        client.send(exit_message.encode())  # send exit message
+                connection_socket.close()  # close connection
+                # remove client from clients dictionary - prevents server from sending to a client that has left
+                clients.pop(client_id)
+                break
+            else:
+                # Forward the message to the other client with the client's name
+                message_to_send = f"{client_name}: {message}"
+                for client in clients.values():  # loop through clients
+                    if client != connection_socket:  # if client is not the one sending the message
+                        client.send(message_to_send.encode())  # send message
+        except Exception as e:
+            log.error(f"Error handling client {client_name}: {e}")
+            connection_socket.close()
+            clients.pop(client_id)
+            break
+
 
 def main():
-  # Create a TCP socket
-  # Notice the use of SOCK_STREAM for TCP packets
-  server_socket = s.socket(s.AF_INET,s.SOCK_STREAM)
-  
-  # Assign port number to socket, and bind to chosen port
-  server_socket.bind(('',server_port))
-  
-  # Configure how many requests can be queued on the server at once
-  server_socket.listen(1)
-  
-  # Alert user we are now online
-  log.info("The server is ready to receive on port " + str(server_port))
-  
-  # Surround with a try-finally to ensure we clean up the socket after we're done
-  try:
-    # Enter forever loop to listen for requests
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(('', server_port))
+    server_socket.listen(2)  # Allow two clients
+    print("Server is ready to receive on port", server_port)
+
+    client_counter = 0
+
     while True:
-      # When a client connects, create a new socket and record their address
-      connection_socket, address = server_socket.accept()
-      log.info("Connected to client at " + str(address))
-      # Pass the new socket and address off to a connection handler function
-      connection_handler(connection_socket, address)
-  finally:
-    server_socket.close()
+        if len(clients) < 2:
+            conn, addr = server_socket.accept()
+            client_counter += 1  # increment client counter
+            client_id = f"Client {'Y' if client_counter == 1 else 'X'}"  # set client id
+            clients[client_id] = conn  # add client to clients dictionary
+            client_names[conn] = client_id  # add client name to client_names dictionary
+            log.info(f"{client_id} connected from {addr}")  # log client connection
+            #  start thread to handle client
+            threading.Thread(target=handle_client, args=(conn, addr, client_id)).start()
+
 
 if __name__ == "__main__":
-  main()
+    main()
