@@ -11,7 +11,7 @@ __credits__ = [
 
 import socket as s
 import threading
-import sys
+# import sys
 
 # Configure logging
 import logging
@@ -39,7 +39,6 @@ def receive_messages(client_socket):
     #         print('\n' + "Server has closed the connection.")
     #         break
     # client_socket.close()  # close the socket
-    # sys.exit(0)
 
 
 def main():
@@ -60,7 +59,6 @@ def main():
             log.error("\tCheck that server is running and the address is correct")
         else:
             log.error("\tNo specific advice, please contact teaching staff and include text of error and code.")
-        # exit(8)
 
     # Start the thread for receiving messages
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
@@ -82,7 +80,6 @@ def main():
     finally:
         # Close socket prior to exit
         client_socket.close()
-        sys.exit(0)  # exit program
 
 
 # This helps shield code from running when we import the module
