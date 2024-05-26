@@ -26,9 +26,10 @@ clients = {}  # dictionary to store client sockets
 
 def handle_client(connection_socket, addr):
     while True:  # loop to handle client messages
-        # try:
+        try:
             message = connection_socket.recv(1024).decode()  # receive message from client
-            
+            if not message:
+                break
             if message == "bye":  # if client sends 'bye', close connection
                 # Inform other client and close connection
                 exit_message = f"{clients[connection_socket]} has left the chat."
@@ -45,11 +46,11 @@ def handle_client(connection_socket, addr):
                 for client in clients.keys():  # loop through clients
                     if client != connection_socket:  # if client is not the one sending the message
                         client.send(message_to_send.encode())  # send message
-        # except Exception as e:
-        #     log.error(f"Error handling client {clients[connection_socket]}: {e}")
-        #     connection_socket.close()
-        #     clients.pop(connection_socket)
-        #     break
+        except Exception as e:
+            log.error(f"Error handling client {clients[connection_socket]}: {e}")
+            connection_socket.close()
+            clients.pop(connection_socket)
+            break
     connection_socket.close()
 
 
