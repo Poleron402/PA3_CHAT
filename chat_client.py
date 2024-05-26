@@ -48,9 +48,9 @@ def main():
 
     try:
         # Establish TCP connection
-        username = input("Enter username: ")
+        # username = input("Enter username: ")
         client_socket.connect((server_name, server_port))
-        client_socket.send(username.encode())
+        # client_socket.send(username.encode())
     except Exception as e:
         log.exception(e)
         log.error("***Advice:***")
@@ -65,7 +65,7 @@ def main():
     # Start the thread for receiving messages
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
 
-    print(f"Welcome to the chat, {username}! To send a message, type the message and click enter.")
+    print(f"Welcome to the chat! To send a message, type the message and click enter.")
     print("Input lowercase sentence: ")
 
     try:

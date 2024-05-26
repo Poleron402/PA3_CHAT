@@ -20,10 +20,9 @@ log.setLevel(logging.DEBUG)
 
 server_port = 12000
 clients = {}  # dictionary to store client sockets
-# client_names = {}  # dictionary to store client names
 
 
-def handle_client(connection_socket, addr, server_socket):
+def handle_client(connection_socket, addr):
     while True:  # loop to handle client messages
         try:
             message = connection_socket.recv(1024).decode()  # receive message from client
@@ -58,16 +57,16 @@ def main():
     server_socket.bind(('', server_port))
     server_socket.listen(2)  # Allow two clients
     print("Server is ready to receive on port", server_port)
-
+    client_counter = 0
     while True:
         # if len(clients) < 2:
         connection_socket, address = server_socket.accept()
-        username = connection_socket.recv(1024)
-        clients[connection_socket] = username.decode()
-        
-        log.info(f"Connected to {username.decode()} at {address}") # set client id
+        client_counter+=1
+        client_id  = f"Client {'Y' if client_counter == 1 else 'X'}" 
+        clients[connection_socket] = client_id
+        log.info(f"Connected to {client_id} at {address}") # set client id
         #  start thread to handle client
-        threading.Thread(target=handle_client, args=(connection_socket, address, server_socket)).start()
+        threading.Thread(target=handle_client, args=(connection_socket, address)).start()
         
     # server_socket.close()
 if __name__ == "__main__":
