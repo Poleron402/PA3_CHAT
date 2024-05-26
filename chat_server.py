@@ -22,8 +22,8 @@ log.setLevel(logging.DEBUG)
 server_port = 12000
 client_ports = []
 lock = threading.Lock()
+num_clients = 0
 def connection_handler(connection_socket, address):
-    # try:
       while True:
         query = connection_socket.recv(1024)
         query_decoded = query.decode()
@@ -38,16 +38,14 @@ def connection_handler(connection_socket, address):
         if query_decoded.lower() == 'bye':
           response += '\n***Client has disconnected***'
           client_ports.remove(connection_socket)
-          if len(client_ports) == 0:
-            break
-          for i in client_ports:
-            if i != connection_socket:
-              i.send(response.encode())
+          if len(client_ports) != 0:
+            for i in client_ports:
+              if i != connection_socket:
+                i.send(response.encode())
           break
         for i in client_ports:
           if i != connection_socket:
             i.send(response.encode())
-    # finally:
       connection_socket.close()
   
 
@@ -72,6 +70,7 @@ def main():
       # When a client connects, create a new socket and record their address
       connection_socket, address = server_socket.accept()
       client_ports.append(connection_socket)
+      
       log.info("Connected to client at " + str(address))
       # Pass the new socket and address off to a connection handler function
       x1 = threading.Thread(target=connection_handler, args = (connection_socket, address))

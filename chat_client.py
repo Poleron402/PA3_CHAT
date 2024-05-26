@@ -33,10 +33,6 @@ def send_msg(client_socket):
       break
     # Read response from server
     client_socket.send(user_input.encode())
-    # if user_input.lower()=='bye':
-    #     # user_input+"\n***The client has left the chat***"
-    #   break
-  # client_socket.close()
   
   
 
@@ -56,7 +52,9 @@ def receive_msg(client_socket):
 def main():
   # Create socket
   client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-  client_socket.connect((server_name,server_port))
+  # un = input("Enter username: ")
+  # client_socket.connect((server_name,server_port))
+  # client_socket.send(un.encode())
   try:
     x = threading.Thread(target=send_msg, args=(client_socket,))
     y = threading.Thread(target=receive_msg, args=(client_socket,))
