@@ -11,7 +11,6 @@ __credits__ = [
 
 import socket
 import threading
-
 # Configure logging
 import logging
 
@@ -24,7 +23,7 @@ clients = {}  # dictionary to store client sockets
 # client_names = {}  # dictionary to store client names
 
 
-def handle_client(connection_socket, addr):
+def handle_client(connection_socket, addr, server_socket):
     while True:  # loop to handle client messages
         try:
             message = connection_socket.recv(1024).decode()  # receive message from client
@@ -60,18 +59,16 @@ def main():
     server_socket.listen(2)  # Allow two clients
     print("Server is ready to receive on port", server_port)
 
-    # client_counter = 0
-
     while True:
         # if len(clients) < 2:
-            connection_socket, address = server_socket.accept()
-            un = connection_socket.recv(1024)
-            clients[connection_socket] = un.decode()
-            log.info(f"Connected to {un.decode()} at {address}") # set client id
-            # log.info(f"{client_id} connected from {addr}")  # log client connection
-            #  start thread to handle client
-            threading.Thread(target=handle_client, args=(connection_socket, address)).start()
-
-
+        connection_socket, address = server_socket.accept()
+        username = connection_socket.recv(1024)
+        clients[connection_socket] = username.decode()
+        
+        log.info(f"Connected to {username.decode()} at {address}") # set client id
+        #  start thread to handle client
+        threading.Thread(target=handle_client, args=(connection_socket, address, server_socket)).start()
+        
+    # server_socket.close()
 if __name__ == "__main__":
     main()
