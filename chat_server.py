@@ -64,17 +64,11 @@ def main():
     while True:
         #try except to handle unexpected errors
         try:
-            #accepting connections to the server sockets, incrementing the count and assigning names
+            #accepting connections to the server sockets, incrementing the count and assigning usernames
             connection_socket, address = server_socket.accept()
-            client_counter+=1
-            if client_counter == 1:
-                client_id = "Client X"
-            else:
-                client_id = "Client Y"
-            #clients dictionary is needed to navigate messages correctly and also to associate user name with a 
-            #specific connection socket
-            clients[connection_socket] = client_id
-            log.info(f"Connected to {client_id} at {address}") # set client id
+            username = connection_socket.recv(1024)
+            clients[connection_socket] = username.decode()
+            log.info(f"Connected to {username.decode()} at {address}") # set client id
             #  start thread to handle client
             client_thread = threading.Thread(target=connection_handler, args=(connection_socket, address))
             client_thread.start()

@@ -36,11 +36,14 @@ def receive_messages(client_socket):
         print(server_response_decoded)  
 
 def main():
-    # Create socket
+    # Create socket 
     client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
+    
     try:
-        # Establish TCP connection
+        # Establish TCP connection and send a username as a starting message
+        username = input("Enter username: ")
         client_socket.connect((server_name, server_port))
+        client_socket.send(username.encode())
     except Exception as e:
         log.exception(e)
         log.error("***Advice:***")
@@ -54,7 +57,7 @@ def main():
     # Start the thread for receiving messages
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
     # Welcome prompt
-    print("Welcome to the chat! To send a message, type the message and click enter.")
+    print("Welcome to the chat, "+username+"\nTo send a message, type the message and click enter.")
     print("Input lowercase sentence: ")
 
     try:
