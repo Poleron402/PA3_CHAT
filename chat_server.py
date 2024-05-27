@@ -17,12 +17,12 @@ import logging
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
+# client_counter = 0
 server_port = 12000
 clients = {}  # dictionary to store client sockets
-
-
-def handle_client(connection_socket, addr):
+# disconnected = 0
+# global client_counter
+def connection_handler(connection_socket, addr):
     while True:  # loop to handle client messages
         try:
             message = connection_socket.recv(1024).decode()  # receive message from client
@@ -40,12 +40,13 @@ def handle_client(connection_socket, addr):
                 break
             else:
                 # Forward the message to the other client with the client's name
-                message_to_send = f"{clients[connection_socket]}: {message}"
+                message_to_send = str(clients[connection_socket]) + message
                 for client in clients.keys():  # loop through clients
                     if client != connection_socket:  # if client is not the one sending the message
                         client.send(message_to_send.encode())  # send message
+        #If there is an issue with a client, we inform the user and remove the client from list, closing the socket
         except Exception as e:
-            log.error(f"Error handling client {clients[connection_socket]}: {e}")
+            log.error("Error handling client "+ clients[connection_socket]+": "+str(e))
             connection_socket.close()
             clients.pop(connection_socket)
             break
@@ -53,21 +54,36 @@ def handle_client(connection_socket, addr):
 
 
 def main():
+    #setting up a server socket
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('', server_port))
     server_socket.listen(2)  # Allow two clients
     print("Server is ready to receive on port", server_port)
+    #client counter needed to assign names X and Y depending on when they were connected to server
     client_counter = 0
+    
     while True:
-        # if len(clients) < 2:
-        connection_socket, address = server_socket.accept()
-        client_counter+=1
-        client_id  = f"Client {'Y' if client_counter == 1 else 'X'}" 
-        clients[connection_socket] = client_id
-        log.info(f"Connected to {client_id} at {address}") # set client id
-        #  start thread to handle client
-        threading.Thread(target=handle_client, args=(connection_socket, address)).start()
-
+        #try except to handle unexpected errors
+        try:
+            #accepting connections to the server sockets, incrementing the count and assigning names
+            connection_socket, address = server_socket.accept()
+            client_counter+=1
+            if client_counter == 1:
+                client_id = "Client X"
+            client_id = "Client Y"
+            #clients dictionary is needed to navigate messages correctly and also to associate user name with a 
+            #specific connection socket
+            clients[connection_socket] = client_id
+            log.info(f"Connected to {client_id} at {address}") # set client id
+            #  start thread to handle client
+            client_thread = threading.Thread(target=connection_handler, args=(connection_socket, address))
+            client_thread.start()
+        except OSError:
+            break
+    #had trouble getting to this part of the code, 
+    server_socket.close()
+    log.info("Server has been shut down")
+        
         
     # server_socket.close()
 if __name__ == "__main__":

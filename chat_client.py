@@ -56,7 +56,7 @@ def main():
     # Start the thread for receiving messages
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
 
-    print(f"Welcome to the chat! To send a message, type the message and click enter.")
+    print("Welcome to the chat! To send a message, type the message and click enter.")
     print("Input lowercase sentence: ")
 
     try:
