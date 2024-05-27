@@ -35,21 +35,14 @@ def receive_messages(client_socket):
         server_response_decoded = server_response.decode()
         print(server_response_decoded)  # print server response
         # if server response is that the server has left the chat, break the loop
-    #     if server_response_decoded.endswith('has left the chat.'):
-    #         print('\n' + "Server has closed the connection.")
-    #         break
-    # client_socket.close()  # close the socket
 
 
 def main():
     # Create socket
     client_socket = s.socket(s.AF_INET, s.SOCK_STREAM)
-
     try:
         # Establish TCP connection
-        # username = input("Enter username: ")
         client_socket.connect((server_name, server_port))
-        # client_socket.send(username.encode())
     except Exception as e:
         log.exception(e)
         log.error("***Advice:***")
@@ -74,13 +67,11 @@ def main():
             if user_input.lower() == "bye":  # if user input is 'bye', break the loop
                 print("\nDisconnecting from chat...\n")
                 break
-
     except Exception as e:
         log.exception("Error sending message: {}".format(e))
     finally:
         # Close socket prior to exit
         client_socket.close()
-
 
 # This helps shield code from running when we import the module
 if __name__ == "__main__":

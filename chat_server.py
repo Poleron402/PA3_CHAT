@@ -67,6 +67,7 @@ def main():
         log.info(f"Connected to {client_id} at {address}") # set client id
         #  start thread to handle client
         threading.Thread(target=handle_client, args=(connection_socket, address)).start()
+
         
     # server_socket.close()
 if __name__ == "__main__":
