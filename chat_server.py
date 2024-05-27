@@ -17,10 +17,8 @@ import logging
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-# client_counter = 0
 server_port = 12000
 clients = {}  # dictionary to store client sockets
-# disconnected = 0
 # global client_counter
 def connection_handler(connection_socket, addr):
     while True:  # loop to handle client messages
@@ -30,7 +28,8 @@ def connection_handler(connection_socket, addr):
                 break
             if message == "bye":  # if client sends 'bye', close connection
                 # Inform other client and close connection
-                exit_message = f"{clients[connection_socket]} has left the chat."
+                exit_message = message+"\n"+clients[connection_socket]+" has left the chat."
+
                 for client in clients.keys():  # loop through clients
                     if client != connection_socket:  # if client is not the one leaving
                         client.send(exit_message.encode())  # send exit message
@@ -40,7 +39,7 @@ def connection_handler(connection_socket, addr):
                 break
             else:
                 # Forward the message to the other client with the client's name
-                message_to_send = str(clients[connection_socket]) + message
+                message_to_send = str(clients[connection_socket])+": " + message
                 for client in clients.keys():  # loop through clients
                     if client != connection_socket:  # if client is not the one sending the message
                         client.send(message_to_send.encode())  # send message
@@ -70,7 +69,8 @@ def main():
             client_counter+=1
             if client_counter == 1:
                 client_id = "Client X"
-            client_id = "Client Y"
+            else:
+                client_id = "Client Y"
             #clients dictionary is needed to navigate messages correctly and also to associate user name with a 
             #specific connection socket
             clients[connection_socket] = client_id
