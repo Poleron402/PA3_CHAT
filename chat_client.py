@@ -11,11 +11,9 @@ __credits__ = [
 
 import socket as s
 import threading
-# import sys
 
 # Configure logging
 import logging
-
 logging.basicConfig()
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -24,18 +22,18 @@ log.setLevel(logging.DEBUG)
 server_name = '10.0.0.1'
 server_port = 12000
 
-
 # the function below is a thread that listens for messages from the server
 def receive_messages(client_socket):
     while True:
-        server_response = client_socket.recv(1024)  # receive server response
-        if not server_response:  # if server has closed the connection
+        # receive server response
+        server_response = client_socket.recv(1024)  
+        # if server has closed the connection
+        if not server_response:
             break
         # Decode server response from UTF-8 bytestream
         server_response_decoded = server_response.decode()
-        print(server_response_decoded)  # print server response
-        # if server response is that the server has left the chat, break the loop
-
+        # print server response
+        print(server_response_decoded)  
 
 def main():
     # Create socket
@@ -55,18 +53,21 @@ def main():
 
     # Start the thread for receiving messages
     threading.Thread(target=receive_messages, args=(client_socket,), daemon=True).start()
-
+    # Welcome prompt
     print("Welcome to the chat! To send a message, type the message and click enter.")
     print("Input lowercase sentence: ")
 
     try:
         while True:
-            user_input = input()  # get user input
+            # get user input
+            user_input = input()  
             # Set data across socket to server
             client_socket.send(user_input.encode())
-            if user_input.lower() == "bye":  # if user input is 'bye', break the loop
+            # if user input is 'bye', break the loop
+            if user_input.lower() == "bye":  
                 print("\nDisconnecting from chat...\n")
                 break
+    # handle exception
     except Exception as e:
         log.exception("Error sending message: {}".format(e))
     finally:
